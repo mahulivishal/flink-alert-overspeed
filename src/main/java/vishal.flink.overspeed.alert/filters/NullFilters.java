@@ -1,9 +1,9 @@
-package vishal.flink.overspeed.filters;
+package vishal.flink.overspeed.alert.filters;
 
 import org.apache.flink.api.common.functions.FilterFunction;
 
 public class NullFilters<T> implements FilterFunction<T> {
-    @Override
+
     public boolean filter(T t) throws Exception {
        return t != null;
     }
