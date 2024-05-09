@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SpeedData {
-    public String deviceId;
-    public Long speedInKmph;
-    public Long timestamp;
+public class VehicleState {
+    public String vin;
+    public Long overSpeedTheshold;
 }
+
