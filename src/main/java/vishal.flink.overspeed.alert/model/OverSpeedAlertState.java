@@ -14,4 +14,5 @@ import java.util.ArrayList;
 public class OverSpeedAlertState {
     public Long detectionWindowStartTimestamp;
     public ArrayList<Long> speedValues;
+    public Boolean isAlertSent;
 }

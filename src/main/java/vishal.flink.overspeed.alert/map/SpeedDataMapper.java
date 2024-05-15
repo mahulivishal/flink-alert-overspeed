@@ -10,7 +10,14 @@ public class SpeedDataMapper implements MapFunction<String, SpeedData> {
     private final ObjectMapper mapper = new ObjectMapper();
 
     public SpeedData map(String event) throws Exception {
-        SpeedData speedData = mapper.readValue(event, SpeedData.class);
-        return speedData;
+        try {
+            SpeedData speedData = mapper.readValue(event, SpeedData.class);
+            log.info("speedData: {}", speedData);
+            return speedData;
+        }catch (Exception e){
+            log.error("speedData ERROR: {}", event);
+            log.error("Error: ", e);
+            return null;
+        }
     }
 }
