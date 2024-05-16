@@ -14,6 +14,7 @@ import vishal.flink.overspeed.alert.filters.NullFilters;
 import vishal.flink.overspeed.alert.map.SpeedDataMapper;
 import vishal.flink.overspeed.alert.model.SpeedData;
 import vishal.flink.overspeed.alert.process.OverSpeedProccessor;
+import vishal.flink.overspeed.alert.sink.SSESink;
 
 import java.util.Properties;
 
@@ -44,6 +45,7 @@ public class App {
         Properties producerProps = new Properties();
         producerProps.setProperty("bootstrap.servers", "localhost:9092");
         producerProps.setProperty("acks", "1");
+        String sseEndpoint = "http://localhost:3000/overspeed-alert/sse/";
 
         FlinkKafkaConsumer<String> speedDataSource = new FlinkKafkaConsumer<String>("over.speed.alert.source.v1",
                 new SimpleStringSchema(), consumerProps);
@@ -56,6 +58,15 @@ public class App {
        /* speedDataStream.addSink(new FlinkKafkaProducer<KafkaRecord>("over.speed.alert.sink.v1",
                 new KafkaRecordSerializer("over.speed.alert.sink.v1"), producerProps, FlinkKafkaProducer.Semantic.AT_LEAST_ONCE))
                 .setParallelism(1).name("over-speed-sink");*/
+
+        FlinkKafkaConsumer<String> speedDataSourceSSE = new FlinkKafkaConsumer<String>("over.speed.alert.source.sse.v1",
+                new SimpleStringSchema(), consumerProps);
+        DataStream<String> speedDataStreamSSE = env.addSource(speedDataSourceSSE).setParallelism(1).name("speed-data-source")
+                .map(new SpeedDataMapper()).setParallelism(1).name("data-mapper")
+                .filter(new NullFilters<SpeedData>()).setParallelism(1).name("null-filter")
+                .keyBy(SpeedData::getDeviceId)
+                .process(new OverSpeedProccessor()).setParallelism(1).name("over-speed-processor");
+        speedDataStreamSSE.addSink(new SSESink(sseEndpoint)).setParallelism(1).name("sse-sink");
     }
 
     }

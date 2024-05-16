@@ -1,5 +1,6 @@
 package vishal.flink.overspeed.alert.process;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
@@ -15,6 +16,9 @@ import java.util.ArrayList;
 @Slf4j
 public class OverSpeedProccessor extends KeyedProcessFunction<String, SpeedData, String> {
     private MapState<String, OverSpeedAlertState> speedState;
+
+    private final ObjectMapper mapper = new ObjectMapper();
+
     private Long overSpeedThreshold = 100L;
 
     private Long avgWindowSizeinMS = 10000L;
@@ -42,7 +46,7 @@ public class OverSpeedProccessor extends KeyedProcessFunction<String, SpeedData,
                             .deviceId(context.getCurrentKey())
                             .message(message)
                             .build();
-                    collector.collect(alert.toString());
+                    collector.collect(mapper.writeValueAsString(alert));
                 } else {
                     OverSpeedAlertState overSpeedAlertState = speedState.get(context.getCurrentKey());
                     if (!overSpeedAlertState.getIsAlertSent()) {
@@ -52,7 +56,7 @@ public class OverSpeedProccessor extends KeyedProcessFunction<String, SpeedData,
                                 .deviceId(context.getCurrentKey())
                                 .message(message)
                                 .build();
-                        collector.collect(alert.toString());
+                        collector.collect(mapper.writeValueAsString(alert));
                     }
                 }
             } else {

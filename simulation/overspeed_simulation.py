@@ -5,15 +5,15 @@ import time
 from pykafka import KafkaClient
 
 kafka_brokers = "localhost:9092"
-speed_data_source_data = "over.speed.alert.source.v1"
+speed_data_source_data = "over.speed.alert.source.sse.v1"
 speed_data_sink_data = "over.speed.alert.sink.v1"
 client = KafkaClient(hosts=kafka_brokers)
 topic = client.topics[speed_data_source_data]
 producer = topic.get_sync_producer()
 speed_threshold = 100
 speed_random_neg_margin = 50
-speed_random_pos_margin = 0
-no_of_packets = 100
+speed_random_pos_margin = 10
+no_of_packets = 10
 devices = ["d_01", "d_02", "d_03"]
 
 
