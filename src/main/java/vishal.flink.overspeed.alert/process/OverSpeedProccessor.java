@@ -6,6 +6,7 @@ import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
+import vishal.flink.overspeed.alert.model.Alert;
 import vishal.flink.overspeed.alert.model.OverSpeedAlertState;
 import vishal.flink.overspeed.alert.model.SpeedData;
 
@@ -35,15 +36,23 @@ public class OverSpeedProccessor extends KeyedProcessFunction<String, SpeedData,
                             .isAlertSent(true)
                             .build();
                     speedState.put(context.getCurrentKey(), overSpeedAlertState);
-                    String message = context.getCurrentKey() + ": OVERSPEEDING! You've breached the Speed Limit! Please slow down.";
+                    String message = "OVERSPEEDING at " + speedData.getSpeedInKmph() + "kmph! You've breached the Speed Limit! Please slow down.";
                     log.info("ALERT: {}", message);
-                    collector.collect(message);
+                    Alert alert = Alert.builder()
+                            .deviceId(context.getCurrentKey())
+                            .message(message)
+                            .build();
+                    collector.collect(alert.toString());
                 } else {
                     OverSpeedAlertState overSpeedAlertState = speedState.get(context.getCurrentKey());
                     if (!overSpeedAlertState.getIsAlertSent()) {
-                        String message = context.getCurrentKey() + ": OVERSPEEDING! You've breached the Speed Limit! Please slow down.";
+                        String message = "OVERSPEEDING at " + speedData.getSpeedInKmph() + "kmph! You've breached the Speed Limit! Please slow down.";
                         log.info("ALERT: {}", message);
-                        collector.collect(message);
+                        Alert alert = Alert.builder()
+                                .deviceId(context.getCurrentKey())
+                                .message(message)
+                                .build();
+                        collector.collect(alert.toString());
                     }
                 }
             } else {

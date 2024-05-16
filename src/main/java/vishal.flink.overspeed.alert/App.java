@@ -52,7 +52,7 @@ public class App {
                 .filter(new NullFilters<SpeedData>()).setParallelism(1).name("null-filter")
                 .keyBy(SpeedData::getDeviceId)
                 .process(new OverSpeedProccessor()).setParallelism(1).name("over-speed-processor");
-        speedDataStream.addSink(new FlinkKafkaProducer<>("over.speed.alert.sink.v1", new SimpleStringSchema(), producerProps));
+        speedDataStream.addSink(new FlinkKafkaProducer<>("over.speed.alert.sink.v1", new SimpleStringSchema(), producerProps)).setParallelism(1).name("alert-sink");
        /* speedDataStream.addSink(new FlinkKafkaProducer<KafkaRecord>("over.speed.alert.sink.v1",
                 new KafkaRecordSerializer("over.speed.alert.sink.v1"), producerProps, FlinkKafkaProducer.Semantic.AT_LEAST_ONCE))
                 .setParallelism(1).name("over-speed-sink");*/
