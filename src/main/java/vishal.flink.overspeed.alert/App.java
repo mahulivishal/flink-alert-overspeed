@@ -45,7 +45,7 @@ public class App {
         Properties producerProps = new Properties();
         producerProps.setProperty("bootstrap.servers", "localhost:9092");
         producerProps.setProperty("acks", "1");
-        String sseEndpoint = "http://localhost:3000/overspeed-alert/sse/";
+        String sseEndpoint = "http://localhost:8082/overspeed-alert/sse/";
 
         FlinkKafkaConsumer<String> speedDataSource = new FlinkKafkaConsumer<String>("over.speed.alert.source.v1",
                 new SimpleStringSchema(), consumerProps);

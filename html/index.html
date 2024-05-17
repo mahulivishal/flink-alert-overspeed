@@ -1,50 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OverSpeeed Detection for Device: d_01</title>
-  <style>
-    /* Optional: Add some basic styling */
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      padding: 20px;
-    }
-    .event {
-      margin-bottom: 10px;
-    }
-  </style>
+    <title>SSE Overspeed</title>
 </head>
 <body>
-  <div class="container">
-    <h1>Server-Sent Events (SSE) Client</h1>
     <div id="events"></div>
-  </div>
-
-  <script>
-    // Function to display SSE events
-    function displayEvent(eventData) {
-      const eventsContainer = document.getElementById('events');
-      const eventDiv = document.createElement('div');
-      eventDiv.classList.add('event');
-      eventDiv.textContent = eventData;
-      eventsContainer.appendChild(eventDiv);
-    }
-
-    // Create EventSource and listen for SSE events
-    const eventSource = new EventSource('http://localhost:3000/overspeed-alert/sse/d_01');
-    eventSource.onmessage = function(event) {
-      displayEvent(event.data);
-    };
-
-    // Optional: Handle connection errors
-    eventSource.onerror = function(error) {
-      console.error('EventSource failed:', error);
-    };
-  </script>
+    <script>
+        const eventSource = new EventSource('http://localhost:8082/overspeed-alert/sse/d_01');
+        eventSource.onmessage = function(event) {
+            const newElement = document.createElement("div");
+            newElement.textContent = event.data;
+            document.getElementById("events").appendChild(newElement);
+        };
+    </script>
 </body>
 </html>
