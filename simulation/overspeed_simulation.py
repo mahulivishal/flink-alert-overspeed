@@ -11,10 +11,10 @@ client = KafkaClient(hosts=kafka_brokers)
 topic = client.topics[speed_data_source_data]
 producer = topic.get_sync_producer()
 speed_threshold = 100
-speed_random_neg_margin = 10
-speed_random_pos_margin = 50
-no_of_packets = 10
-devices = ["d_01", "d_01", "d_01"]
+speed_random_neg_margin = 50
+speed_random_pos_margin = 10
+no_of_packets = 100
+devices = ["d_01"]
 
 
 def push_speed_data(data):
