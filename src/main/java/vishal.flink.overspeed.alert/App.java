@@ -14,7 +14,6 @@ import vishal.flink.overspeed.alert.filters.NullFilters;
 import vishal.flink.overspeed.alert.map.SpeedDataMapper;
 import vishal.flink.overspeed.alert.model.SpeedData;
 import vishal.flink.overspeed.alert.process.OverSpeedProccessor;
-import vishal.flink.overspeed.alert.sink.SSESink;
 
 import java.util.Properties;
 
@@ -25,7 +24,7 @@ public class App {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
         env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE);
-        env.getCheckpointConfig().setCheckpointStorage("file:///Users/vishalmahuli/Desktop/checkpoints");
+        env.getCheckpointConfig().setCheckpointStorage("file:///Users/g0006686/Desktop/checkpoints");
         env.enableCheckpointing(5000L);
         env.getCheckpointConfig().setMinPauseBetweenCheckpoints(5000L);
         env.getCheckpointConfig().setCheckpointTimeout(2000L);
@@ -45,7 +44,6 @@ public class App {
         Properties producerProps = new Properties();
         producerProps.setProperty("bootstrap.servers", "localhost:9092");
         producerProps.setProperty("acks", "1");
-        String sseEndpoint = "http://localhost:8082/overspeed-alert/sse/";
 
         FlinkKafkaConsumer<String> speedDataSource = new FlinkKafkaConsumer<String>("over.speed.alert.source.v1",
                 new SimpleStringSchema(), consumerProps);
@@ -55,18 +53,6 @@ public class App {
                 .keyBy(SpeedData::getDeviceId)
                 .process(new OverSpeedProccessor()).setParallelism(1).name("over-speed-processor");
         speedDataStream.addSink(new FlinkKafkaProducer<>("over.speed.alert.sink.v1", new SimpleStringSchema(), producerProps)).setParallelism(1).name("alert-sink");
-       /* speedDataStream.addSink(new FlinkKafkaProducer<KafkaRecord>("over.speed.alert.sink.v1",
-                new KafkaRecordSerializer("over.speed.alert.sink.v1"), producerProps, FlinkKafkaProducer.Semantic.AT_LEAST_ONCE))
-                .setParallelism(1).name("over-speed-sink");*/
-
-        FlinkKafkaConsumer<String> speedDataSourceSSE = new FlinkKafkaConsumer<String>("over.speed.alert.source.sse.v1",
-                new SimpleStringSchema(), consumerProps);
-        DataStream<String> speedDataStreamSSE = env.addSource(speedDataSourceSSE).setParallelism(1).name("speed-data-source")
-                .map(new SpeedDataMapper()).setParallelism(1).name("data-mapper")
-                .filter(new NullFilters<SpeedData>()).setParallelism(1).name("null-filter")
-                .keyBy(SpeedData::getDeviceId)
-                .process(new OverSpeedProccessor()).setParallelism(1).name("over-speed-processor");
-        speedDataStreamSSE.addSink(new SSESink(sseEndpoint)).setParallelism(1).name("sse-sink");
     }
 
     }
