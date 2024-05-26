@@ -20,9 +20,7 @@ public class OverSpeedProccessor extends KeyedProcessFunction<String, SpeedData,
     private final ObjectMapper mapper = new ObjectMapper();
 
     private Long overSpeedThreshold = 100L;
-
-    private Long avgWindowSizeinMS = 10000L;
-
+    
     public void open(Configuration configuration) throws Exception {
         MapStateDescriptor<String, OverSpeedAlertState> vehicleStateMap = new MapStateDescriptor<>("speed_state_map", String.class, OverSpeedAlertState.class);
         this.speedState = getRuntimeContext().getMapState(vehicleStateMap);
