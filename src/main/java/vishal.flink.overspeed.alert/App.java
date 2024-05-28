@@ -4,15 +4,20 @@ import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vishal.flink.overspeed.alert.filters.NullFilters;
+import vishal.flink.overspeed.alert.filters.OverSpeedFilter;
 import vishal.flink.overspeed.alert.map.SpeedDataMapper;
 import vishal.flink.overspeed.alert.model.SpeedData;
+import vishal.flink.overspeed.alert.process.AvgOverSpeedProcessor;
 import vishal.flink.overspeed.alert.process.OverSpeedProccessor;
 
 import java.util.Properties;
@@ -53,6 +58,16 @@ public class App {
                 .keyBy(SpeedData::getDeviceId)
                 .process(new OverSpeedProccessor()).setParallelism(1).name("over-speed-processor");
         speedDataStream.addSink(new FlinkKafkaProducer<>("over.speed.alert.sink.v1", new SimpleStringSchema(), producerProps)).setParallelism(1).name("alert-sink");
+
+
+        SingleOutputStreamOperator meanSpeedDataStream = env.addSource(speedDataSource).setParallelism(1).name("speed-data-source")
+                .map(new SpeedDataMapper()).setParallelism(1).name("data-mapper")
+                .filter(new NullFilters<SpeedData>()).setParallelism(1).name("null-filter")
+                .keyBy(SpeedData::getDeviceId)
+                .filter(new OverSpeedFilter())
+                .windowAll(SlidingProcessingTimeWindows.of(Time.seconds(10), Time.seconds(5)))
+                .process(new AvgOverSpeedProcessor()).setParallelism(1).name("over-speed-processor");
+        meanSpeedDataStream.addSink(new FlinkKafkaProducer<>("over.speed.alert.avg.sink.v1", new SimpleStringSchema(), producerProps)).setParallelism(1).name("alert-sink");
     }
 
     }
